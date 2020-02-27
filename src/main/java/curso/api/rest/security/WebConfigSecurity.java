@@ -2,6 +2,7 @@ package curso.api.rest.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,6 +33,8 @@ public class WebConfigSecurity extends WebSecurityConfigurerAdapter{
 		/* ativando restrincao a pag inicial do sistema: o index*/
 		.disable().authorizeRequests().antMatchers("/").permitAll()
 		.antMatchers("/index").permitAll()
+		
+		.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 		
 		/*url de logout - Redireciona apos o user deslogar do siste*/
 		.anyRequest().authenticated().and().logout().logoutSuccessUrl("/index")

@@ -46,16 +46,14 @@ public class JWTTokenAutenticacaoService {
 		/*add o cabecalho http*/
 		response.addHeader(HEADER_STRING, token); /* Authorization: Bearer 4f5bgf5b5g5hg5nhnw*/
 		
-		/*liberando resposta para porta difierente do projeto angula*/
-		response.addHeader("Access-Control-Allow-Origin", "*");
-		
+		liberacaoCors(response);
 		/*escreve token como resposta no corpo do http*/
 		response.getWriter().write("{\"Authorization\":\""+token+"\"}");  
 		
 	}
 	
 	/*Rtorna o user validado com token ou caso n seja valido retorna null*/
-	public Authentication getAuthentication(HttpServletRequest request) {
+	public Authentication getAuthentication(HttpServletRequest request, HttpServletResponse response) {
 		
 		/*pega o token enviado no cabecalho http*/
 		String token = request.getHeader(HEADER_STRING);
@@ -80,7 +78,23 @@ public class JWTTokenAutenticacaoService {
 			}
 
 		}
+		liberacaoCors(response);
 		return null; /*n autorizado*/
 		
+	}
+
+	private void liberacaoCors(HttpServletResponse response) {
+		if(response.getHeader("Access-Control-Allow-Origin") == null) {
+			response.addHeader("Access-Control-Allow-Origin", "*");
+		}
+		if(response.getHeader("Access-Control-Allow-Headers") == null) {
+			response.addHeader("Access-Control-Allow-Headers", "*");
+		}
+		if(response.getHeader("Access-Control-Request-Headers") == null) {
+			response.addHeader("Access-Control-Request-Headers", "*");
+		}
+		if(response.getHeader("Access-Control-Allow-Methods") == null) {
+			response.addHeader("Access-Control-Allow-Methods", "*");
+		}
 	}
 }

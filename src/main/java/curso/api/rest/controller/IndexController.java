@@ -7,6 +7,7 @@ import java.util.Optional;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +36,9 @@ public class IndexController {
 	private UsuarioRepository usuariorepository;
 	
 	/*servico Restfull*/
-	@GetMapping(value = "/{id}", produces = "application/json", headers = "X-API-Version=v1")
-	public ResponseEntity <Usuario>initv1(@PathVariable(value = "id") Long id) {
+	@GetMapping(value = "/{id}", produces = "application/json")
+	@CachePut("cacheuser")
+	public ResponseEntity <Usuario>init(@PathVariable(value = "id") Long id) {
 		 
 		Optional<Usuario> usuario = usuariorepository.findById(id);
 		System.out.println("Executando versão 1");
@@ -57,13 +59,24 @@ public class IndexController {
 	
 	/*supondo q osistema fique lento ao carregar*/
 	@GetMapping(value = "/", produces = "application/json")
-	@Cacheable("cacheusuarios")
+	@CachePut("cacheusuarios")
 	public ResponseEntity <List<Usuario>>usuario() throws InterruptedException {
 		List<Usuario> list = (List<Usuario>) usuariorepository.findAll();
-		Thread.sleep(6000);/*segura o codigo por 6seg*/
+		//Thread.sleep(6000);/*segura o codigo por 6seg*/
 		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
 
 	}
+	
+	@GetMapping(value = "/usuarioPorNome/{nome}", produces = "application/json")
+	@CachePut("cacheusuarios")
+	public ResponseEntity <List<Usuario>>usuarioPorNome(@PathVariable("nome") String nome) throws InterruptedException {
+		
+		List<Usuario> list = (List<Usuario>) usuariorepository.findUserByNome(nome);
+		
+		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+
+	}
+	
 	@PostMapping(value = "/", produces = "application/json")
 	public ResponseEntity<Usuario>cadastrar(@RequestBody Usuario usuario){
 		
@@ -84,7 +97,7 @@ public class IndexController {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
 		}
 		
-		Usuario userTemporario = usuariorepository.findUserByLogin(usuario.getLogin());
+		Usuario userTemporario = usuariorepository.findById(usuario.getId()).get();
 		//caso senha ja exista
 		if(!userTemporario.getSenha().equals(usuario.getSenha())){
 			String senhacriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
